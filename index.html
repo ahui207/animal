@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>恋爱奇葩动物图鉴</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        body {
+            background-color: #f4f5f9;
+            padding: 20px 12px;
+        }
+        .container {
+            max-width: 460px;
+            margin: 0 auto;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 22px;
+            padding: 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+
+        /* 页面切换控制 */
+        .page-lock{display:block;}
+        .page-quiz{display:none;}
+        .page-result{display:none;}
+
+        .lock-title{
+            font-size:24px;
+            text-align:center;
+            margin-bottom:20px;
+        }
+        #pwdInput{
+            width:100%;
+            padding:14px 16px;
+            border:1px solid #ddd;
+            border-radius:12px;
+            font-size:18px;
+            text-align:center;
+            margin-bottom:14px;
+        }
+        .err-tip{
+            color:#e53e3e;
+            text-align:center;
+            margin-bottom:14px;
+            display:none;
+        }
+
+        /* 结果页大图 */
+        .animal-img-box {
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            background: #f0f0f7;
+        }
+        .animal-img-box img {
+            width: 100%;
+            display: block;
+            object-fit: cover;
+        }
+        .animal-name {
+            font-size: 26px;
+            font-weight: 700;
+            color: #222;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+        .animal-title {
+            font-size:17px;
+            color:#666;
+            text-align:center;
+            margin-bottom:14px;
+        }
+        .quote {
+            font-size: 18px;
+            color: #784fd1;
+            text-align: center;
+            font-weight: 600;
+            padding: 12px;
+            background-color: #f4f0ff;
+            border-radius:12px;
+            margin-bottom:24px;
+        }
+        .index-title {
+            font-size: 19px;
+            font-weight: bold;
+            margin-bottom:16px;
+            color:#333;
+        }
+        /* ==========新增：指数容器样式========== */
+        #indexBox{
+            margin-bottom:20px;
+        }
+        .index-item {
+            margin-bottom:12px;
+        }
+        .index-name {
+            display:flex;
+            justify-content: space-between;
+            font-size:14px;
+            color:#444;
+            margin-bottom:4px;
+        }
+        .progress-bg {
+            width:100%;
+            height:10px;
+            background:#e8e8ef;
+            border-radius:99px;
+            overflow:hidden;
+        }
+        .progress-bar {
+            height:100%;
+            border-radius:99px;
+            background: linear-gradient(90deg,#7b56e0,#ff7979);
+        }
+        .advice-block {
+            margin-top:28px;
+        }
+        .advice-title {
+            font-size:19px;
+            font-weight:bold;
+            margin-bottom:12px;
+        }
+        .advice-text {
+            line-height:1.7;
+            color:#444;
+            font-size:15px;
+        }
+        .tip-text {
+            margin-top:24px;
+            font-size:13px;
+            color:#999;
+            text-align:center;
+        }
+        .btn-wrap {
+            margin-top:30px;
+            display:flex;
+            gap:12px;
+            justify-content:center;
+        }
+        button {
+            padding:12px 24px;
+            border:none;
+            background:#7b56e0;
+            color:#fff;
+            border-radius:99px;
+            font-size:16px;
+            cursor:pointer;
+        }
+        button.gray{
+            background:#aaa;
+        }
+        button:hover {
+            background:#6744c2;
+        }
+        button.gray:hover{
+            background:#999;
+        }
+        /* 单题样式 */
+        .q-progress{
+            margin-bottom:20px;
+            text-align:center;
+            font-size:15px;
+            color:#666;
+        }
+        .q-title{font-weight:bold;margin-bottom:20px;font-size:18px;}
+        .opt{
+            display:block;
+            padding:14px 16px;
+            border:1px solid #ddd;
+            border-radius:12px;
+            margin-bottom:12px;
+            cursor:pointer;
+            font-size:16px;
+        }
+        .opt:hover{border-color:#7b56e0;background:#f8f6ff;}
+        .opt.active{
+            background:#7b56e0;
+            color:#fff;
+            border-color:#7b56e0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- 密码解锁页面 -->
+    <div class="page-lock card">
+        <h2 class="lock-title">🔒 恋爱奇葩动物图鉴</h2>
+        <p style="text-align:center;margin-bottom:16px">请输入解锁密码进入测试</p>
+        <input id="pwdInput" type="password" placeholder="输入密码">
+        <div class="err-tip" id="pwdErr">密码错误，请重新输入</div>
+        <div class="btn-wrap">
+            <button onclick="checkPassword()">解锁进入</button>
+        </div>
+    </div>
+
+    <!-- 答题页面【一题一页】 -->
+    <div class="page-quiz card">
+        <h2 style="text-align:center;margin-bottom:16px">恋爱奇葩动物图鉴</h2>
+        <div class="q-progress" id="qProgress"></div>
+        <div class="question" id="questionBox"></div>
+
+        <div class="btn-wrap">
+            <button class="gray" id="prevBtn" onclick="prevQuestion()">上一题</button>
+            <button id="nextBtn" onclick="nextQuestion()">下一题</button>
+        </div>
+    </div>
+
+    <!-- 结果页面 -->
+    <div class="page-result card">
+        <div class="animal-img-box">
+            <img id="animalImg" src="" alt="动物卡通图">
+        </div>
+        <h2 class="animal-name" id="animalName"></h2>
+        <div class="animal-title" id="animalSubTitle"></div>
+        <div class="quote" id="quoteText"></div>
+
+        <div class="index-title">📊 我的恋爱指数</div>
+        <!-- 指数容器，保证DOM存在 -->
+        <div id="indexBox"></div>
+
+        <div class="advice-block">
+            <div class="advice-title">💡 给你的感情建议</div>
+            <div class="advice-text" id="adviceText"></div>
+        </div>
+
+        <p class="tip-text">趣味心理测试，仅供娱乐，非专业心理测评</p>
+        <div class="btn-wrap">
+            <button onclick="restartTest()">重新测试</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const RIGHT_PWD = "3586";
+// 20道题目数组
+const questionList = [
+    {title:"1.有人向你表白，你的第一反应？",opts:[
+        {val:"A",txt:"A. 直接冲，立刻想开启恋爱"},
+        {val:"B",txt:"B. 表面淡定，内心疯狂脑补剧情"},
+        {val:"C",txt:"C. 先观察，警惕对方目的"},
+        {val:"D",txt:"D. 随缘，不主动不拒绝"}
+    ]},
+    {title:"2.暧昧对象忽冷忽热，你会？",opts:[
+        {val:"A",txt:"A. 主动出击问清楚"},
+        {val:"B",txt:"B. 反复琢磨对方每一句话，疯狂内耗"},
+        {val:"C",txt:"C. 直接戒备，怀疑对方不靠谱"},
+        {val:"D",txt:"D. 无所谓，该干嘛干嘛"}
+    ]},
+    {title:"3.你理想中的恋爱模式？",opts:[
+        {val:"A",txt:"A.轰轰烈烈，大胆奔赴"},
+        {val:"B",txt:"B.细腻走心，情绪互通"},
+        {val:"C",txt:"C.保留边界，不轻易交付全部"},
+        {val:"D",txt:"D.轻松佛系，互不打扰"}
+    ]},
+    {title:"4.伴侣长时间不回消息，你的想法？",opts:[
+        {val:"A",txt:"A. 担心对方出事，连续发消息询问"},
+        {val:"B",txt:"B. 胡思乱想，是不是不想理我了"},
+        {val:"C",txt:"C. 心里警惕，记下这件事"},
+        {val:"D",txt:"D. 先忙自己的，等对方有空再说"}
+    ]},
+    {title:"5.吵架之后，你通常会？",opts:[
+        {val:"A",txt:"A. 快速沟通，不想冷战"},
+        {val:"B",txt:"B. 反复回想争吵细节，越想越难受"},
+        {val:"C",txt:"C. 冷静观察，评估这个人是否合适"},
+        {val:"D",txt:"D. 放一放，时间会淡化矛盾"}
+    ]},
+    {title:"6.你更容易被哪种人吸引？",opts:[
+        {val:"A",txt:"A.热情直接，敢爱敢恨"},
+        {val:"B",txt:"B.温柔细腻，懂得共情"},
+        {val:"C",txt:"C.沉稳理智，有边界感"},
+        {val:"D",txt:"D.松弛随性，不黏人"}
+    ]},
+    {title:"7.发现对方有秘密隐瞒你，你会？",opts:[
+        {val:"A",txt:"A. 直接摊牌，希望对方坦白"},
+        {val:"B",txt:"B. 不断脑补，猜测隐瞒的内容"},
+        {val:"C",txt:"C. 提高防备，不再完全信任"},
+        {val:"D",txt:"D. 尊重隐私，不强行追问"}
+    ]},
+    {title:"8.面对喜欢的人，你会主动展示自己吗？",opts:[
+        {val:"A",txt:"A. 主动展示，大胆表达好感"},
+        {val:"B",txt:"B. 小心翼翼，害怕留下坏印象"},
+        {val:"C",txt:"C. 保持克制，观察对方反应"},
+        {val:"D",txt:"D.顺其自然，不刻意表现"}
+    ]},
+    {title:"9.恋爱占用你生活的比重，你希望是？",opts:[
+        {val:"A",txt:"A. 占比很高，爱情很重要"},
+        {val:"B",txt:"B. 占比较高，情绪被对方牵动"},
+        {val:"C",txt:"C. 一半以内，保留自我空间"},
+        {val:"D",txt:"D. 很小，恋爱只是生活点缀"}
+    ]},
+    {title:"10.如果对方和你三观差异很大，你会？",opts:[
+        {val:"A",txt:"A. 为爱磨合，努力说服彼此"},
+        {val:"B",txt:"B. 难过纠结，舍不得放手"},
+        {val:"C",txt:"C. 理性评估，考虑及时止损"},
+        {val:"D",txt:"D. 各过各的，互不干涉观念"}
+    ]},
+    {title:"11.你怎么看待异地恋？",opts:[
+        {val:"A",txt:"A. 只要相爱，距离不是问题"},
+        {val:"B",txt:"B. 容易没有安全感，会经常多想"},
+        {val:"C",txt:"C. 风险很高，需要严格的信任考核"},
+        {val:"D",txt:"D. 可以接受，各自管好自己"}
+    ]},
+    {title:"12.当对方否定你的想法，你会？",opts:[
+        {val:"A",txt:"A. 据理力争，说出我的立场"},
+        {val:"B",txt:"B. 心里委屈，反复怀疑自己"},
+        {val:"C",txt:"C. 冷静分辨，判断对方是否尊重我"},
+        {val:"D",txt:"D. 无所谓，不必强求认同"}
+    ]},
+    {title:"13.你更容易因为什么陷入心动？",opts:[
+        {val:"A",txt:"A. 热烈直接的追求"},
+        {val:"B",txt:"B. 细节上的温柔体贴"},
+        {val:"C",txt:"C. 成熟稳重的处事方式"},
+        {val:"D",txt:"D. 轻松舒服的相处氛围"}
+    ]},
+    {title:"14.一段感情结束，你通常？",opts:[
+        {val:"A",txt:"A. 快速走出来，继续奔赴下一段"},
+        {val:"B",txt:"B. 长时间沉浸回忆，反复回味"},
+        {val:"C",txt:"C. 复盘教训，提高下一次的门槛"},
+        {val:"D",txt:"D. 很快放下，回归自己生活"}
+    ]},
+    {title:"15.伴侣需要你牺牲个人计划，你会？",opts:[
+        {val:"A",txt:"A. 愿意为爱让步牺牲"},
+        {val:"B",txt:"B. 纠结犹豫，怕对方不高兴"},
+        {val:"C",txt:"C. 守住底线，有限度妥协"},
+        {val:"D",txt:"D. 优先自己计划，不轻易妥协"}
+    ]},
+    {title:"16.你对恋爱中的承诺怎么看？",opts:[
+        {val:"A",txt:"A. 承诺就要尽力兑现"},
+        {val:"B",txt:"B. 很看重承诺，容易记在心里"},
+        {val:"C",txt:"C. 只看行动，不信口头诺言"},
+        {val:"D",txt:"D. 承诺不必太较真，顺其自然"}
+    ]},
+    {title:"17.你喜欢两个人每天高频聊天吗？",opts:[
+        {val:"A",txt:"A. 喜欢，想保持高频互动"},
+        {val:"B",txt:"B. 需要，缺少联系就容易不安"},
+        {val:"C",txt:"C. 适度即可，不用时刻聊天"},
+        {val:"D",txt:"D. 不用，各自安静生活更好"}
+    ]},
+    {title:"18.如果朋友不看好你的恋人，你会？",opts:[
+        {val:"A",txt:"A. 坚持自己选择，相信爱人"},
+        {val:"B",txt:"B. 心里动摇，反复思考别人评价"},
+        {val:"C",txt:"C. 认真听取，自己重新观察对方"},
+        {val:"D",txt:"D. 别人看法不重要，与我无关"}
+    ]},
+    {title:"19.面对伴侣的负面情绪，你会？",opts:[
+        {val:"A",txt:"A. 积极安慰，一起解决问题"},
+        {val:"B",txt:"B. 跟着难过，被对方情绪牵动"},
+        {val:"C",txt:"C. 理性安抚，保持边界不被裹挟"},
+        {val:"D",txt:"D. 不插手，让对方自己消化"}
+    ]},
+    {title:"20.你认为长久爱情最重要的是？",opts:[
+        {val:"A",txt:"A. 热烈不变的爱意"},
+        {val:"B",txt:"B. 彼此共情懂得"},
+        {val:"C",txt:"C. 信任与底线"},
+        {val:"D",txt:"D. 轻松自在，互不捆绑"}
+    ]}
+];
+
+let currentQ = 0;
+let answerList = Array(questionList.length).fill(null);
+
+//密码校验
+function checkPassword(){
+    const inputPwd = document.getElementById("pwdInput").value.trim();
+    const errDom = document.getElementById("pwdErr");
+    if(inputPwd === RIGHT_PWD){
+        document.querySelector(".page-lock").style.display="none";
+        document.querySelector(".page-quiz").style.display="block";
+        errDom.style.display="none";
+        renderQuestion();
+    }else{
+        errDom.style.display="block";
+    }
+}
+
+//渲染当前题目
+function renderQuestion(){
+    const q = questionList[currentQ];
+    document.getElementById("qProgress").innerText = `第${currentQ+1}题 / 共${questionList.length}题`;
+    let html = `<div class="q-title">${q.title}</div>`;
+    q.opts.forEach(opt=>{
+        const activeClass = answerList[currentQ] === opt.val ? "active" : "";
+        html += `<div class="opt ${activeClass}" data-val="${opt.val}" onclick="selectOpt(this)">${opt.txt}</div>`;
+    })
+    document.getElementById("questionBox").innerHTML = html;
+
+    //控制上一题按钮显示隐藏
+    if(currentQ === 0){
+        document.getElementById("prevBtn").style.display="none";
+    }else{
+        document.getElementById("prevBtn").style.display="inline-block";
+    }
+    //最后一题修改按钮文字为提交
+    const nextBtn = document.getElementById("nextBtn");
+    if(currentQ === questionList.length - 1){
+        nextBtn.innerText = "查看结果";
+    }else{
+        nextBtn.innerText = "下一题";
+    }
+}
+
+//选中选项，保存答案
+function selectOpt(el){
+    const parent = el.parentElement;
+    parent.querySelectorAll(".opt").forEach(item=>item.classList.remove("active"));
+    el.classList.add("active");
+    answerList[currentQ] = el.dataset.val;
+}
+
+//下一题 / 提交
+function nextQuestion(){
+    // 没选答案提示
+    if(!answerList[currentQ]){
+        alert("请选择一个答案再继续！");
+        return;
+    }
+    //最后一题，计算结果
+    if(currentQ === questionList.length -1){
+        calcResult();
+        return;
+    }
+    currentQ++;
+    renderQuestion();
+}
+
+//上一题
+function prevQuestion(){
+    if(currentQ>0){
+        currentQ--;
+        renderQuestion();
+    }
+}
+
+//动物数据，图片全部使用相对路径
+const animalData = [
+    {
+        id:1,
+        name:"蜜獾｜平头哥",
+        sub:"为爱冲锋选手",
+        quote:"干就完事，恋爱不看输赢，只看敢不敢上。",
+        img:"mihuan.png",
+        index:[
+            {name:"恋爱渴望指数",val:86},
+            {name:"心动敏感指数",val:78},
+            {name:"情感内耗指数",val:32},
+            {name:"安全感缺口指数",val:40},
+            {name:"自我保护指数",val:35},
+            {name:"为爱妥协指数",val:76},
+            {name:"浪漫幻想指数",val:72},
+            {name:"独处需求指数",val:28},
+            {name:"暧昧耐受指数",val:45},
+            {name:"长期信任指数",val:60},
+        ],
+        advice:"你的勇敢是非常难得的优点，但冲锋前一定要留一个冷静缓冲期。不要仅凭一时好感就全盘交付真心。可以保持主动，但放慢确认关系的速度，多观察对方处理矛盾、对待陌生人的方式。如果对方出现消耗、不尊重你的信号，记得保留撤退的底气。勇敢不等于硬撞南墙，敢主动，也要敢及时止损。"
+    },
+    {
+        id:2,
+        name:"黑帽悬猴",
+        sub:"内心戏影帝",
+        quote:"表面面无表情，脑内已经演完80集虐恋连续剧。",
+        img:"heimaoxuanhou.png",
+        index:[
+            {name:"恋爱渴望指数",val:62},
+            {name:"心动敏感指数",val:85},
+            {name:"情感内耗指数",val:90},
+            {name:"安全感缺口指数",val:65},
+            {name:"自我保护指数",val:70},
+            {name:"为爱妥协指数",val:48},
+            {name:"浪漫幻想指数",val:68},
+            {name:"独处需求指数",val:52},
+            {name:"暧昧耐受指数",val:82},
+            {name:"长期信任指数",val:38},
+        ],
+        advice:"尽量区分「事实」和「脑补」。对方冷淡，不一定代表不爱，可能只是单纯忙。遇到疑惑优先选择简单沟通，不要独自在心里推演无数悲剧。给自己设立内耗截止时间，最多允许自己思考这件事半小时，想不通就放下。不要靠猜测维系感情，长期的脑补消耗，再喜欢的人也会慢慢磨掉好感。"
+    },
+    {
+        id:3,
+        name:"河马",
+        sub:"暴躁温柔反差怪",
+        quote:"别惹安静的河马，深情起来很吓人。",
+        img:"hema.png",
+        index:[
+            {name:"恋爱渴望指数",val:70},
+            {name:"心动敏感指数",val:66},
+            {name:"情感内耗指数",val:50},
+            {name:"安全感缺口指数",val:55},
+            {name:"自我保护指数",val:50},
+            {name:"为爱妥协指数",val:70},
+            {name:"浪漫幻想指数",val:65},
+            {name:"独处需求指数",val:40},
+            {name:"暧昧耐受指数",val:55},
+            {name:"长期信任指数",val:62},
+        ],
+        advice:"你拥有很厚重的深情，但需要学会管理情绪爆发的阈值。不要把所有压抑攒到临界点再一次性爆发。有不满可以在情绪平稳的时候，温和表达感受，而不是等到情绪上头再争吵。你的温柔很珍贵，但要记得：真正长久的亲密，是平和沟通，不是忽冷忽热的剧烈反差。"
+    },
+    {
+        id:4,
+        name:"鸭嘴兽",
+        sub:"谜系恋爱选手",
+        quote:"小众浪漫，懂我的才配靠近。",
+        img:"yazuishou.png",
+        index:[
+            {name:"恋爱渴望指数",val:58},
+            {name:"心动敏感指数",val:72},
+            {name:"情感内耗指数",val:60},
+            {name:"安全感缺口指数",val:50},
+            {name:"自我保护指数",val:65},
+            {name:"为爱妥协指数",val:42},
+            {name:"浪漫幻想指数",val:80},
+            {name:"独处需求指数",val:66},
+            {name:"暧昧耐受指数",val:70},
+            {name:"长期信任指数",val:44},
+        ],
+        advice:"不用强迫自己变成大众眼里标准的恋人，但可以试着直白表达你的想法。不要默认对方可以读懂你的潜台词。当你需要独处，或者情绪低落的时候，直接告诉对方，减少不必要的猜忌。找到能接纳你独特性格的人，比强迫自己迎合大众恋爱模板更重要。"
+    },
+    {
+        id:5,
+        name:"袋熊",
+        sub:"躺平自愈选手",
+        quote:"你来我欢迎，你走我不追，主打原地躺平。",
+        img:"daixiong.png",
+        index:[
+            {name:"恋爱渴望指数",val:35},
+            {name:"心动敏感指数",val:40},
+            {name:"情感内耗指数",val:28},
+            {name:"安全感缺口指数",val:30},
+            {name:"自我保护指数",val:75},
+            {name:"为爱妥协指数",val:33},
+            {name:"浪漫幻想指数",val:36},
+            {name:"独处需求指数",val:86},
+            {name:"暧昧耐受指数",val:30},
+            {name:"长期信任指数",val:68},
+        ],
+        advice:"佛系是你的保护壳，但不要完全放弃主动。遇到真正心动、合拍的人，可以适度释放好感，不用一直原地等待。你的优点是情绪稳定，适合长期关系，但也要学会表达自己的在意，不然对方会误以为你毫不在乎。随缘不等于完全不作为。"
+    },
+    {
+        id:6,
+        name:"狐獴",
+        sub:"警戒侦查选手",
+        quote:"想靠近我，先通过我的侦查考核。",
+        img:"humeng.png",
+        index:[
+            {name:"恋爱渴望指数",val:32},
+            {name:"心动敏感指数",val:45},
+            {name:"情感内耗指数",val:45},
+            {name:"安全感缺口指数",val:72},
+            {name:"自我保护指数",val:92},
+            {name:"为爱妥协指数",val:24},
+            {name:"浪漫幻想指数",val:30},
+            {name:"独处需求指数",val:80},
+            {name:"暧昧耐受指数",val:26},
+            {name:"长期信任指数",val:22},
+        ],
+        advice:"防备是保护自己的铠甲，但不要永远紧闭心门。信任可以循序渐进，不用一次性全盘交出，也不要一上来就预设对方是坏人。可以分阶段慢慢观察，给彼此一点机会。分清“谨慎保护自己”和“习惯性猜忌”，不要让过度戒备，推开真心对你的人。"
+    },
+    {
+        id:7,
+        name:"翻车鱼",
+        sub:"恋爱翻车专业户",
+        quote:"认真谈恋爱，但总意外翻车。",
+        img:"fancheyu.png",
+        index:[
+            {name:"恋爱渴望指数",val:75},
+            {name:"心动敏感指数",val:76},
+            {name:"情感内耗指数",val:78},
+            {name:"安全感缺口指数",val:68},
+            {name:"自我保护指数",val:40},
+            {name:"为爱妥协指数",val:72},
+            {name:"浪漫幻想指数",val:84},
+            {name:"独处需求指数",val:36},
+            {name:"暧昧耐受指数",val:64},
+            {name:"长期信任指数",val:46},
+        ],
+        advice:"保持真诚没有错，但不要把全部期待寄托在一段关系上。在投入感情前，多观察对方的底线、责任感，不要仅凭初期好感就脑补美好的未来。学会区分“短暂的心动”和“长期适配”。就算再次失败，也不要否定自己，翻车只是遇到错的人，不是你不值得被爱。"
+    },
+    {
+        id:8,
+        name:"水滴鱼",
+        sub:"丧萌渴望型",
+        quote:"就算丧丧的，也想被温柔接住。",
+        img:"shuidiyu.png",
+        index:[
+            {name:"恋爱渴望指数",val:45},
+            {name:"心动敏感指数",val:55},
+            {name:"情感内耗指数",val:75},
+            {name:"安全感缺口指数",val:78},
+            {name:"自我保护指数",val:68},
+            {name:"为爱妥协指数",val:55},
+            {name:"浪漫幻想指数",val:42},
+            {name:"独处需求指数",val:74},
+            {name:"暧昧耐受指数",val:44},
+            {name:"长期信任指数",val:32},
+        ],
+        advice:"不要预设自己不配被爱。你的温柔和敏感，是很珍贵的特质。试着慢慢接纳自己所有低落、不完美的一面。不要因为害怕受伤，就提前拒绝所有可能性。如果遇到愿意接纳你所有情绪的人，可以慢慢打开心门；就算暂时遇不到，好好善待自己，本身就是浪漫。"
+    },
+    {
+        id:9,
+        name:"科莫多龙",
+        sub:"沉默占有怪",
+        quote:"沉默不代表不在意。",
+        img:"kemodulong.png",
+        index:[
+            {name:"恋爱渴望指数",val:50},
+            {name:"心动敏感指数",val:60},
+            {name:"情感内耗指数",val:55},
+            {name:"安全感缺口指数",val:62},
+            {name:"自我保护指数",val:82},
+            {name:"为爱妥协指数",val:40},
+            {name:"浪漫幻想指数",val:45},
+            {name:"独处需求指数",val:76},
+            {name:"暧昧耐受指数",val:32},
+            {name:"长期信任指数",val:74},
+        ],
+        advice:"不要独自默默积攒情绪。有委屈、不满，不要等到忍无可忍才爆发，学会少量、及时表达自己的边界和需求。你的深情藏在细节里，但爱人没办法读心。适度表达在意，对方才能感受到你的真心。占有欲需要适度，爱不是牢牢控制，而是彼此尊重。"
+    },
+    {
+        id:10,
+        name:"海象",
+        sub:"憨憨深情选手",
+        quote:"笨拙的爱意，也是真心。",
+        img:"haxiang.png",
+        index:[
+            {name:"恋爱渴望指数",val:78},
+            {name:"心动敏感指数",val:74},
+            {name:"情感内耗指数",val:64},
+            {name:"安全感缺口指数",val:58},
+            {name:"自我保护指数",val:42},
+            {name:"为爱妥协指数",val:88},
+            {name:"浪漫幻想指数",val:70},
+            {name:"独处需求指数",val:34},
+            {name:"暧昧耐受指数",val:58},
+            {name:"长期信任指数",val:80},
+        ],
+        advice:"你拥有很纯粹的深情，但不太擅长表达。不要总靠默默付出换取对方的理解，很多情绪需要直接说出口。你很愿意包容对方，但记得也要给自己留底线。一味迁就，很容易委屈自己。笨拙的真心很珍贵，但也要学会好好爱自己。"
+    },
+    {
+        id:11,
+        name:"琴鸟",
+        sub:"模仿型恋爱选手",
+        quote:"为你表演，但别忘了我是谁。",
+        img:"qinniao.png",
+        index:[
+            {name:"恋爱渴望指数",val:66},
+            {name:"心动敏感指数",val:82},
+            {name:"情感内耗指数",val:58},
+            {name:"安全感缺口指数",val:60},
+            {name:"自我保护指数",val:48},
+            {name:"为爱妥协指数",val:84},
+            {name:"浪漫幻想指数",val:76},
+            {name:"独处需求指数",val:44},
+            {name:"暧昧耐受指数",val:66},
+            {name:"长期信任指数",val:52},
+        ],
+        advice:"你很擅长捕捉对方喜好，下意识变成对方喜欢的样子。但长期迎合别人，很容易丢失自我。在亲密关系里，不用一直扮演完美恋人。一段健康的感情，是对方接纳真实的你，而不是一直靠模仿去讨好。保留自己的爱好与底线。"
+    },
+    {
+        id:12,
+        name:"星鼻鼹",
+        sub:"盲冲心动选手",
+        quote:"凭心动出发，凭直觉爱人。",
+        img:"xingbiyan.png",
+        index:[
+            {name:"恋爱渴望指数",val:80},
+            {name:"心动敏感指数",val:90},
+            {name:"情感内耗指数",val:48},
+            {name:"安全感缺口指数",val:42},
+            {name:"自我保护指数",val:38},
+            {name:"为爱妥协指数",val:78},
+            {name:"浪漫幻想指数",val:86},
+            {name:"独处需求指数",val:32},
+            {name:"暧昧耐受指数",val:72},
+            {name:"长期信任指数",val:48},
+        ],
+        advice:"你的直觉很敏锐，但不要单凭心动就全盘投入。心动不等于合适，在冲动奔赴之前，多观察对方人品、三观。你很容易被新鲜感打动，要区分短暂的心动和长久的适配。保留一点理性，不要完全被情绪牵着走。"
+    },
+    {
+        id:13,
+        name:"巨骨舌鱼",
+        sub:"外强内脆选手",
+        quote:"外壳坚硬，内心易碎。",
+        img:"jugusheyu.png",
+        index:[
+            {name:"恋爱渴望指数",val:52},
+            {name:"心动敏感指数",val:68},
+            {name:"情感内耗指数",val:62},
+            {name:"安全感缺口指数",val:64},
+            {name:"自我保护指数",val:84},
+            {name:"为爱妥协指数",val:44},
+            {name:"浪漫幻想指数",val:56},
+            {name:"独处需求指数",val:78},
+            {name:"暧昧耐受指数",val:40},
+            {name:"长期信任指数",val:54},
+        ],
+        advice:"习惯用坚硬外壳保护自己，不愿意示弱。但长期压抑情绪，会不断消耗自己。不用硬撑假装强大，在信任的人面前，可以适度展露脆弱。真正爱你的人，不会因为你脆弱而轻视你。学会表达脆弱，也是亲密关系的必修课。"
+    },
+    {
+        id:14,
+        name:"裸鼹鼠",
+        sub:"无欲恋爱选手",
+        quote:"恋爱非必需品，自在最重要。",
+        img:"luoyanshu.png",
+        index:[
+            {name:"恋爱渴望指数",val:18},
+            {name:"心动敏感指数",val:22},
+            {name:"情感内耗指数",val:20},
+            {name:"安全感缺口指数",val:24},
+            {name:"自我保护指数",val:94},
+            {name:"为爱妥协指数",val:16},
+            {name:"浪漫幻想指数",val:20},
+            {name:"独处需求指数",val:96},
+            {name:"暧昧耐受指数",val:18},
+            {name:"长期信任指数",val:26},
+        ],
+        advice:"你的生活重心放在自己身上，不需要靠恋爱填补空缺，这是很难得的状态。但也不要完全关上感情大门。如果遇到相处轻松舒服的人，可以试着体验。恋爱不是人生任务，有也行，没有也很好，优先保持自身自在。"
+    },
+    {
+        id:15,
+        name:"水豚",
+        sub:"情绪稳定佛系王者",
+        quote:"万物皆可随缘，谁都别打扰我晒太阳。",
+        img:"shuitun.png",
+        index:[
+            {name:"恋爱渴望指数",val:40},
+            {name:"心动敏感指数",val:36},
+            {name:"情感内耗指数",val:22},
+            {name:"安全感缺口指数",val:33},
+            {name:"自我保护指数",val:78},
+            {name:"为爱妥协指数",val:45},
+            {name:"浪漫幻想指数",val:32},
+            {name:"独处需求指数",val:90},
+            {name:"暧昧耐受指数",val:36},
+            {name:"长期信任指数",val:72},
+        ],
+        advice:"你的情绪稳定是巨大优势，很少被感情内耗。但不要习惯性回避矛盾，遇到分歧不要一味退让回避。可以保持松弛，同时主动表达自己的感受。随缘不等于拒绝沟通，舒服长久的关系，是两个人都可以安心做自己。"
+    }
+];
+
+//渲染结果
+function renderResult(animal){
+    document.getElementById("animalImg").src = animal.img;
+    document.getElementById("animalName").innerText = animal.name;
+    document.getElementById("animalSubTitle").innerText = animal.sub;
+    document.getElementById("quoteText").innerText = animal.quote;
+    document.getElementById("adviceText").innerText = animal.advice;
+    // 清空+重新渲染指数板块，加固代码
+    let indexHtml = "";
+    animal.index.forEach(item=>{
+        indexHtml += `
+        <div class="index-item">
+            <div class="index-name">
+                <span>${item.name}</span>
+                <span>${item.val}%</span>
+            </div>
+            <div class="progress-bg">
+                <div class="progress-bar" style="width:${item.val}%"></div>
+            </div>
+        </div>
+        `;
+    })
+    // 核心修复：先清空再写入
+    const indexWrap = document.getElementById("indexBox");
+    indexWrap.innerHTML = "";
+    indexWrap.innerHTML = indexHtml;
+
+    document.querySelector(".page-quiz").style.display = "none";
+    document.querySelector(".page-result").style.display = "block";
+}
+
+//计分逻辑【修复】
+function calcResult(){
+    let scoreA=0,scoreB=0,scoreC=0,scoreD=0;
+    answerList.forEach(v=>{
+        if(v==="A")scoreA++;
+        if(v==="B")scoreB++;
+        if(v==="C")scoreC++;
+        if(v==="D")scoreD++;
+    })
+    const scores = [
+        {key:"A",val:scoreA,animal:animalData[0]},
+        {key:"B",val:scoreB,animal:animalData[1]},
+        {key:"C",val:scoreC,animal:animalData[5]},
+        {key:"D",val:scoreD,animal:animalData[14]}
+    ]
+    //降序排序
+    scores.sort((a,b)=>b.val - a.val);
+    const maxVal = scores[0].val;
+    //拿到所有最高分的组别
+    const topList = scores.filter(s=>s.val === maxVal);
+    let targetAnimal;
+    if(topList.length === 1){
+        targetAnimal = topList[0].animal;
+    }else{
+        //同分，随机从top里选一个
+        const rndIdx = Math.floor(Math.random() * topList.length);
+        targetAnimal = topList[rndIdx].animal;
+    }
+    renderResult(targetAnimal);
+}
+
+//重置测试
+function restartTest(){
+    currentQ = 0;
+    answerList = Array(questionList.length).fill(null);
+    document.querySelector(".page-result").style.display = "none";
+    document.querySelector(".page-quiz").style.display = "block";
+    renderQuestion();
+}
+</script>
+</body>
+</html>
